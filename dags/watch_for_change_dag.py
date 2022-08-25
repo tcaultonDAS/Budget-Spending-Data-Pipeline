@@ -9,6 +9,8 @@ from airflow.operators.python import PythonOperator
 spend_sheet = Sheet2APIClient(api_url = 'https://sheet2api.com/v1/lSkMlXOdT5aS/denver_house_spending_2022/')
 ted_budget = Sheet2APIClient(api_url = 'https://sheet2api.com/v1/lSkMlXOdT5aS/teddy_budget_2022')
 
+months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
 
 default_args = {
 	'start_date': datetime(2020, 1, 1)
@@ -36,7 +38,7 @@ def _get_data_util(**kwargs):
 
 	prices = []
 	if len(data_util) == 1:
-		Utilities_Sum = data_util[0]['Amount']
+		Utilities_Sum = data_util[0]['Amount']/3
 	elif len(data_util) > 1:
 		for d in data_util:
 			prices.append(d['Amount'])
@@ -53,18 +55,19 @@ def _update_budget(**kwargs):
 	Grocery_Sum = int(Grocery_Sum[0])
 	Utilities_Sum = ti.xcom_pull(key = 'utilities_pull', task_ids = ['get_data_util'])
 	Utilities_Sum = int(Utilities_Sum[0])
-	print("Groceries cost " + str(Grocery_Sum) + " and utilities cost " + str(Utilities_Sum) + ".")
+
+	print(Grocery_Sum)
+	print(Utilities_Sum)
 
 	ted_budget.update_rows(
 		sheet = 'Data_Load',
-		query = {'Month': 'August'},
+		query = {'month': 'August'},
 		row = {
-			'Groceries': Grocery_Sum,
-			'Utilities': Utilities_Sum
+			'groceries': Grocery_Sum,
+			'utilities': Utilities_Sum
 		},
 		partial_update = True,
 	)
-
 
 
 
